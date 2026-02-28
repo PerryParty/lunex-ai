@@ -1,11 +1,62 @@
-// Inside your script tag in index.html
-async function handleChat() {
-    const val = userInput.value;
-    // We call our PRIVATE function, not the AI directly!
-    const res = await fetch("/.netlify/functions/chat", {
-        method: "POST",
-        body: JSON.stringify({ message: val })
-    });
-    const data = await res.json();
-    addMessage(data.reply, 'ai');
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunex | Virtual Friend</title>
+    <style>
+        :root { --bg: #fdfcf0; --text: #4a4a4a; --accent: #ff7675; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 400px; height: 500px; background: white; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; }
+        header { background: var(--accent); color: white; padding: 15px; text-align: center; font-weight: bold; }
+        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 14px; }
+        .user { background: #eee; align-self: flex-end; }
+        .ai { background: #ffeaa7; align-self: flex-start; }
+        .input-area { padding: 15px; display: flex; gap: 10px; border-top: 1px solid #eee; }
+        input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 15px; outline: none; }
+        button { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <header>LUNEX</header>
+        <div id="chat-box">
+            <div class="msg ai">Hi! I'm Lunex. How are you feeling today?</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Say hello...">
+            <button onclick="send()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const box = document.getElementById('chat-box');
+        const input = document.getElementById('user-input');
+
+        async function send() {
+            const text = input.value.trim();
+            if(!text) return;
+
+            addMsg(text, 'user');
+            input.value = '';
+
+            // This calls your Netlify Function
+            const res = await fetch('/.netlify/functions/chat', {
+                method: 'POST',
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            addMsg(data.reply, 'ai');
+        }
+
+        function addMsg(text, type) {
+            const div = document.createElement('div');
+            div.className = `msg ${type}`;
+            div.innerText = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
